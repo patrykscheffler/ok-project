@@ -1,7 +1,7 @@
 /**
  * Main class
  */
-public class Main {
+public class Metasolver {
     public static void main(String args[]) {
         System.out.println("test");
     }
