@@ -13,9 +13,9 @@ public class Generator {
         return (int)(Math.random() * range) + (min <= max ? min : max);
     }
     
-    public static boolean checkBreak(int arr[], int start, int time) {
+    public static boolean checkBreak(int arr[][], int machine, int start, int time) {
     	for(int i=start; i<=start+time; i++) {
-    		if(arr[i] == 1) { return false; }
+    		if(arr[machine][i] == 1) { return false; }
     	}
     	return true;
     }
@@ -30,17 +30,19 @@ public class Generator {
         int min_time = Integer.parseInt(br.readLine());
         System.out.print("Podaj maksymalny czas wykonywania pojedynczej operacji: ");
         int max_time = Integer.parseInt(br.readLine());
-        int break_countM1 = randomWithRange(2, tasks/2);
-        int break_countM2 = randomWithRange(2, tasks/2);
         System.out.print("Podaj minimalny czas trwania pojedynczej przerwy: ");
         int min_break = Integer.parseInt(br.readLine());
         System.out.print("Podaj maksymalny czas trwania pojedynczej przerwy: ");
         int max_break = Integer.parseInt(br.readLine());
+        int break_countM1 = randomWithRange(2, tasks/2);
+        int break_countM2 = randomWithRange(2, tasks/2);
         int max_long = (max_time*2*tasks) + (int)Math.ceil(max_time*0.2*break_countM1) + (int)Math.ceil(max_time*0.2*break_countM2) + (break_countM1*max_break) + (break_countM2*max_break);
-        int[] M1 = new int[max_long+1];
-        Arrays.fill(M1, 0);
-        int[] M2 = new int[max_long+1];
-        Arrays.fill(M2, 0);
+        int[][] visual = new int[2][max_long+1];
+        for(int m=0; m<=1; m++) {
+        	Arrays.fill(visual[m], 0);
+        }
+        visual[0][0] = break_countM1;
+        visual[1][0] = break_countM2;
         String plik = "INSTANCJE/instancja" + instance + ".problem";
         BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(plik));
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
@@ -58,37 +60,29 @@ public class Generator {
         }
         int t;
     	int start;
-        for(int i=1; i<=break_countM1; i++) {
-        	do {
-        		t = randomWithRange(min_break, max_break);
-        		start = randomWithRange(0, max_long);
-        	} while(!checkBreak(M1, start, t));
-            pw.write(i + "; 1; " + t + "; " + start);
-            pw.println();
-            for(int j=start; j<=start+t; j++) {
-            	M1[j] = 1;
-            }
-        }
-        for(int i=break_countM1+1; i<=break_countM2+break_countM1; i++) {
-        	do {
-        		t = randomWithRange(min_break, max_break);
-        		start = randomWithRange(0, max_long);
-        	} while(!checkBreak(M2, start, t));
-            pw.write(i + "; 2; " + t + "; " + start);
-            pw.println();
-            for(int j=start; j<=start+t; j++) {
-            	M2[j] = 1;
-            }
-        }
+    	int counter = 1;
+    	for(int m=0; m<=1; m++) {
+	        for(int i=1; i<=visual[m][0]; i++) {
+	        	do {
+	        		t = randomWithRange(min_break, max_break);
+	        		start = randomWithRange(0, max_long);
+	        	} while(!checkBreak(visual, m, start, t));
+	            pw.write(counter + "; " + m + "; " + t + "; " + start);
+	            counter++;
+	            pw.println();
+	            for(int j=start; j<=start+t; j++) {
+	            	visual[m][j] = 1;
+	            }
+	        }
+    	}
         pw.write("*** EOF ***");
         //WIZUALIZACJA:
         /*pw.println();
-        for(int i=1; i<=max_long; i++) {
-        	pw.write(Integer.toString(M1[i]));
-        }
-        pw.println();
-        for(int i=1; i<=max_long; i++) {
-        	pw.write(Integer.toString(M2[i]));
+        for(int m=0; m<=1; m++) {
+	        for(int i=1; i<=max_long; i++) {
+	        	pw.write(Integer.toString(visual[m][i]));
+	        }
+	        pw.println();
         }*/
         //WIZUALIZACJA
         pw.close();
