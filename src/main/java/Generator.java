@@ -20,11 +20,11 @@ public class Generator {
 
     /** Chceck if break can be generated in that place */
     public static boolean checkBreak(int arr[][], int machine, int start, int time) {
-    	if (arr[machine].length <= (start + time)) return false;
+        if (arr[machine].length <= (start + time)) return false;
         for (int i = start; i <= (start + time); i++) {
-    		if (arr[machine][i] == 1) { return false; }
-    	}
-    	return true;
+            if (arr[machine][i] == 1) { return false; }
+        }
+        return true;
     }
 
     public static void main(String args[]) throws IOException {
@@ -48,7 +48,7 @@ public class Generator {
 
         int[][] visual = new int[2][max_long + 1];
         for (int i = 0; i <= 1; i++) {
-        	Arrays.fill(visual[i], 0);
+            Arrays.fill(visual[i], 0);
         }
         visual[0][0] = breakCountM1;
         visual[1][0] = breakCountM2;
@@ -68,23 +68,23 @@ public class Generator {
         }
 
         int breakTime;
-    	int startTime;
-    	int counter = 1;
-    	for (int i = 0; i <= 1; i++) {
-	        for (int j = 1; j <= visual[i][0]; j++) {
-	        	do {
-	        		breakTime = randomInRange(minBreakTime, maxBreakTime);
-	        		startTime = randomInRange(0, max_long);
-	        	} while (!checkBreak(visual, i, startTime, breakTime));
+        int startTime;
+        int counter = 1;
+        for (int i = 0; i <= 1; i++) {
+            for (int j = 1; j <= visual[i][0]; j++) {
+                do {
+                    breakTime = randomInRange(minBreakTime, maxBreakTime);
+                    startTime = randomInRange(0, max_long);
+                } while (!checkBreak(visual, i, startTime, breakTime));
 
-	            pw.write(counter + "; " + i + "; " + breakTime + "; " + startTime + "\n");
-	            counter++;
+                pw.write(counter + "; " + (i + 1) + "; " + breakTime + "; " + startTime + "\n");
+                counter++;
 
-	            for (int k = startTime; k <= (startTime + breakTime); k++) {
-	            	visual[i][k] = 1;
-	            }
-	        }
-    	}
+                for (int k = startTime; k <= (startTime + breakTime); k++) {
+                    visual[i][k] = 1;
+                }
+            }
+        }
 
         pw.write("*** EOF ***");
 //        Wizualizacja przerw na maszynach:
