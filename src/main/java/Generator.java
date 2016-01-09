@@ -67,7 +67,7 @@ public class Generator {
 	        		t = randomWithRange(min_break, max_break);
 	        		start = randomWithRange(0, max_long);
 	        	} while(!checkBreak(visual, m, start, t));
-	            pw.write(counter + "; " + m + "; " + t + "; " + start);
+	            pw.write(counter + "; " + (m+1) + "; " + t + "; " + start);
 	            counter++;
 	            pw.println();
 	            for(int j=start; j<=start+t; j++) {
