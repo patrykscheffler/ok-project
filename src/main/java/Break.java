@@ -5,12 +5,12 @@ public class Break {
     private int start;
 
 	public Break(int id, int machine, int time, int start) {
-		this.setId(id);
-    	this.setMachine(machine);
-    	this.setTime(time);
-    	this.setStart(start);
-    }
-	
+		this.id = id;
+		this.machine = machine;
+		this.time = time;
+		this.start = start;
+	}
+
 	public int getId() {
 		return id;
 	}

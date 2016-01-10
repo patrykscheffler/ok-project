@@ -4,11 +4,11 @@ public class Operation {
     private boolean done;
 
 	public Operation(int time, int machine) {
-    	this.setTime(time);
-    	this.setMachine(machine);
-    	this.setDone(false);
-    }
-	
+		this.time = time;
+		this.machine = machine;
+		this.done = false;
+	}
+
 	public int getTime() {
 		return time;
 	}
