@@ -12,10 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/* TODO:
- * realny czas zadania trzeba policzyc przy dawaniu odpowiedzi do pliku
- */
-
 public class Metasolver {
 	/** Tuning metaheurystyki */
 	private final static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
@@ -107,11 +103,13 @@ public class Metasolver {
         for (int i = 0; i < theBest.getMachine1().size(); i++) {
             int taskId = theBest.getMachine1().get(i)[0];
             int taskTime = theBest.getMachine1().get(i)[1];
+            int instanceTaskTime = 0;
         	if(taskId > 0) { //OPERATION
+        		instanceTaskTime = tasksContainer.get(taskId - 1).getOp1().getTime();
         		pw.write("o1_" + Integer.toString(taskId) +
         				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(instanceTaskTime) +
         				", " + Integer.toString(taskTime) +
-        				", " + Integer.toString(0) +
         				"; ");
         	} else if(taskId == 0) { //IDLE
         		idleCountM1++;
@@ -188,14 +186,14 @@ public class Metasolver {
         }
 
         for (int i = 0; i < tmpPopulation.size(); i++) {
-        	System.out.println("Jedna z wielu skladowych populacji (identyfikatory zadan):");
+        	//System.out.println("Jedna z wielu skladowych populacji (identyfikatory zadan):");
             for (int j = 0; j < tmpPopulation.get(i).length; j++) {
                 System.out.printf(String.valueOf(tmpPopulation.get(i)[j]) + " ");
             }
-            System.out.printf("\n");
+            //System.out.printf("\n");
             population.add(generateMachine(tmpPopulation.get(i)));
         }
-        System.out.printf("\n");
+        //System.out.printf("\n");
     }
 
     /** Pobiera liste zadan z pewna kolejnoscia ich ulozenia;
@@ -288,21 +286,21 @@ public class Metasolver {
         }
 
         /** Wypisywanie maszyny I w jedkostkach czasu */
-        System.out.println("Maszyna I w jednostkach czasu:");
+        /*System.out.println("Maszyna I w jednostkach czasu:");
         for (int i = 0; i < machine1.size(); i++) {
             for (int j = 0; j < machine1.get(i)[1]; j++) {
                 System.out.printf(String.valueOf(machine1.get(i)[0]) + " ");
             }
         }
-        System.out.printf("\n");
+        System.out.printf("\n");*/
         /** Wypisywanie maszyny II w jedkostkach czasu */
-        System.out.println("Maszyna II w jednostkach czasu:");
+        /*System.out.println("Maszyna II w jednostkach czasu:");
         for (int i = 0; i < machine2.size(); i++) {
             for (int j = 0; j < machine2.get(i)[1]; j++) {
                 System.out.printf(String.valueOf(machine2.get(i)[0]) + " ");
             }
         }
-        System.out.printf("\n");
+        System.out.printf("\n");*/
 
         int fitness = maxTimeM1 > maxTimeM2 ? maxTimeM1 : maxTimeM2;
         Individual individual = new Individual(tasks, machine1, machine2, fitness);
@@ -310,9 +308,10 @@ public class Metasolver {
         return individual;
     }
 
-    /** ??? */
-    //zawsze ktorys musi byc theBest na wypadek stopu
-    //petla while(warunkek stopu)
+    /** Zwraca nowa populacje o zadanym rozmiarze, wykonujac na starej uprzednio:
+     * turniej i wy³onienie dwoch najlepszych (dla danej probki) ulozen z obecnej populacji,
+     * krzyzowanie na dwoch najlepszych ulozeniach z turnieji
+     * mutowanie nowego ulozenia po krzyzowaniu */
     public static List<Individual> evolvePopulation() {
         List<Individual> newPopulation = new ArrayList<>();
 
@@ -328,7 +327,7 @@ public class Metasolver {
         return newPopulation;
     }
 
-    /** ??? */
+    /** Tworzy turniej o zadanym rozmiarze z populacji i wybiera z niego najlepsze rozwiazanie */
     private static Individual tournamentSelection() {
         List<Individual> tournament = new ArrayList<>();
         Random r = new Random();
