@@ -441,8 +441,8 @@ public class Metasolver {
 	        			"s out of " + stopArg + "s");
         	}
         } else if(stopCause == "PERCENT") {
-        	while((100.0-(selectTheBest().getFitness() * 100.0 / firstScheduleFitness)) < stopArg) {
-        		System.out.println(Double.toString((100.0-(selectTheBest().getFitness() * 100.0 / firstScheduleFitness))) +
+        	while((((firstScheduleFitness - selectTheBest().getFitness()) * 100) / firstScheduleFitness) < stopArg) {
+        		System.out.println(Double.toString((((firstScheduleFitness - selectTheBest().getFitness()) * 100) / firstScheduleFitness)) +
         				"% out of " + Double.toString(stopArg) + "%");
         		evolvePopulation();
         	}
@@ -451,7 +451,7 @@ public class Metasolver {
         stopTime = System.nanoTime();
     	duration = (stopTime - startTime);
     	System.out.println("It took " + Integer.toString((int)(duration / 1000000000.0)) +
-    			"s to solve this problem! Optimised: " + (100.0-(theBest.getFitness() * 100.0 / firstScheduleFitness)) + "%");
+    			"s to solve this problem! Optimised: " + (((firstScheduleFitness - selectTheBest().getFitness()) * 100) / firstScheduleFitness) + "%");
         saveSolution();
 
         /*System.out.println("Lista zadan instancji:");
