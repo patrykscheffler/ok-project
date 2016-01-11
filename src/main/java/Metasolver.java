@@ -17,6 +17,7 @@ public class Metasolver {
 	private final static int splitPlaceTuning = 2; //miejsce podzial przy krzyzowaniu
 	private final static int populationAmountTuning = 5; //liczebnosc generowanej populacji
 	private final static double mutationRateTuning = 0.01; //procent przy mutacji; *100%
+    private final static int tournamentSizeTuning = 4;
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
@@ -200,13 +201,39 @@ public class Metasolver {
     }
 
     /** ??? */
-    public static void evolvePopulation() {
+    public static List<Individual> evolvePopulation() {
+        List<Individual> newPopulation = new ArrayList<>();
 
+        for (int i = 0; i < populationAmountTuning; i++) {
+            Individual ind1 = tournamentSelection();
+            Individual ind2 = tournamentSelection();
+            Integer[] newIndGene = crossover(ind1, ind2);
+            newIndGene = mutation(newIndGene);
+            Individual newInd = generateMachine(newIndGene);
+            newPopulation.add(newInd);
+        }
+
+        return newPopulation;
     }
 
     /** ??? */
-    private static void tournamentSelection() {
+    private static Individual tournamentSelection() {
+        List<Individual> tournament = new ArrayList<>();
+        Random r = new Random();
 
+        for (int i = 0; i < tournamentSizeTuning; i++) {
+            int randomId = r.nextInt(population.size());
+            tournament.add(population.get(i));
+        }
+
+        Individual fittest = tournament.get(0);
+        for (int i = 1; i < tournament.size(); i++) {
+            if (tournament.get(i).getFitness() > fittest.getFitness()) {
+                fittest = tournament.get(i);
+            }
+        }
+
+        return fittest;
     }
 
     /** Pobiera dwa konkretne uszeregowania na maszynach i bierze z nich kolejnosc zadan;
@@ -235,7 +262,7 @@ public class Metasolver {
 
     /** Pobiera liste zadan;
      * przy zadanym procencie szansy zamienia sasiadujace wartosci ze soba */
-    private static void mutation(Integer[] tasks) {
+    private static Integer[] mutation(Integer[] tasks) {
         double mutationRate = mutationRateTuning;
         for (int i = 0; i < tasks.length - 1; i++) {
             if (Math.random() <= mutationRate) {
@@ -244,6 +271,8 @@ public class Metasolver {
                 tasks[i + 1] = tmp;
             }
         }
+
+        return tasks;
     }
 
     /** Pobiera numer maszyny, konkretny moment oraz czas trwania operacji
