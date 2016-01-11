@@ -44,12 +44,12 @@ public class Generator {
 
         int breakCountM1 = randomInRange(2, tasksAmount/2);
         int breakCountM2 = randomInRange(2, tasksAmount/2);
+        int maxBreakCount = breakCountM1 > breakCountM2 ? breakCountM1 : breakCountM2;
         int max_long = 
-        		(maxTaskTime * 2 * tasksAmount) + 
-        		(int) Math.ceil(maxTaskTime * 0.2 * breakCountM1) + 
-        		(int) Math.ceil(maxTaskTime * 0.2 * breakCountM2) + 
-        		(breakCountM1 * maxBreakTime) + 
-        		(breakCountM2 * maxBreakTime);
+        		(maxTaskTime * tasksAmount) +
+        		(maxBreakCount * maxBreakTime) +
+        		(int) Math.ceil(maxTaskTime * 0.2 * maxBreakCount) +
+        		maxTaskTime; //for IDLE at M2 while procesing OP1 at M1
 
         int[][] visual = new int[2][max_long + 1];
         for (int i = 0; i <= 1; i++) {
