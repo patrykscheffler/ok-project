@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 public class Metasolver {
 	/** Tuning metaheurystyki */
 	private final static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
-	private final static int populationAmountTuning = 6; //liczebnosc generowanej populacji
+	private final static int populationAmountTuning = 200; //liczebnosc generowanej populacji
 	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; *100%
     private final static int tournamentSizeTuning = 4; //rozmiar turnieju
 	
@@ -79,10 +79,6 @@ public class Metasolver {
     
     /** Zapisuje najlepsze (aktualnie) rozwiazanie do pliku w folderze ROZWIAZANIA */
     private static void saveSolution() throws FileNotFoundException {
-    	/// TYMCZASOWO theBest bedzie firstSchedule!!!
-    	theBest = getFirstSchedule();
-    	/// pozniej to usuniemy i normalnie bedziemy podstawiali jakies lepsze rozwiazanie
-    	/// ktore powstanie w trakcie dzialania programu
     	int breaksCountM1 = 0;
         int breaksCountM2 = 0;
         int breaksTimeM1 = 0;
@@ -186,11 +182,11 @@ public class Metasolver {
         }
 
         for (int i = 0; i < tmpPopulation.size(); i++) {
-        	//System.out.println("Jedna z wielu skladowych populacji (identyfikatory zadan):");
+        	/*System.out.println("Jedna z wielu skladowych populacji (identyfikatory zadan):");
             for (int j = 0; j < tmpPopulation.get(i).length; j++) {
                 System.out.printf(String.valueOf(tmpPopulation.get(i)[j]) + " ");
             }
-            //System.out.printf("\n");
+            System.out.printf("\n");*/
             population.add(generateMachine(tmpPopulation.get(i)));
         }
         //System.out.printf("\n");
@@ -312,7 +308,7 @@ public class Metasolver {
      * turniej i wy³onienie dwoch najlepszych (dla danej probki) ulozen z obecnej populacji,
      * krzyzowanie na dwoch najlepszych ulozeniach z turnieji
      * mutowanie nowego ulozenia po krzyzowaniu */
-    public static List<Individual> evolvePopulation() {
+    public static void evolvePopulation() {
         List<Individual> newPopulation = new ArrayList<>();
 
         for (int i = 0; i < populationAmountTuning; i++) {
@@ -323,8 +319,7 @@ public class Metasolver {
             Individual newInd = generateMachine(newIndGene);
             newPopulation.add(newInd);
         }
-
-        return newPopulation;
+        population = newPopulation;
     }
 
     /** Tworzy turniej o zadanym rozmiarze z populacji i wybiera z niego najlepsze rozwiazanie */
@@ -345,6 +340,18 @@ public class Metasolver {
         }
 
         return fittest;
+    }
+    
+    /** Wybiera najlepsze rozwiazanie z aktualnej populacji */
+    private static Individual selectTheBest() {
+        Individual theBest = population.get(0);
+        for (int i = 1; i < population.size(); i++) {
+            if (population.get(i).getFitness() > theBest.getFitness()) {
+            	theBest = population.get(i);
+            }
+        }
+
+        return theBest;
     }
 
     /** Pobiera dwa konkretne uszeregowania na maszynach i bierze z nich kolejnosc zadan;
@@ -407,7 +414,11 @@ public class Metasolver {
     public static void main(String args[]) throws NumberFormatException, IOException {
     	loadInstance();
         randomPopulation();
-        evolvePopulation();
+        for(int i=0; i<25; i++) {
+        	System.out.println(Integer.toString(i));
+        	evolvePopulation();
+        }
+        theBest = selectTheBest();
         saveSolution();
 
         /*System.out.println("Lista zadan instancji:");
