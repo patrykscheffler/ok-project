@@ -1,33 +1,38 @@
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /* TODO:
- * selekcja - turniej
- * zapis aktualnego rozwiazania (Individual) solved do pliku w folderze ROZWIAZANIA
+ * realny czas zadania trzeba policzyc przy dawaniu odpowiedzi do pliku
  */
 
 public class Metasolver {
 	/** Tuning metaheurystyki */
-	private final static int splitPlaceTuning = 2; //miejsce podzial przy krzyzowaniu
-	private final static int populationAmountTuning = 5; //liczebnosc generowanej populacji
-	private final static double mutationRateTuning = 0.01; //procent przy mutacji; *100%
+	private final static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
+	private final static int populationAmountTuning = 6; //liczebnosc generowanej populacji
+	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; *100%
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
     private static List<Break> breaksContainer;
     private static List<Individual> population;
     private static int tasksAmount;
+    private static Individual theBest;
 
     /** Pobiera numer instancji do zaladowania z folderu INSTANCJE;
      * Odczytuje plik konkretnej instancji;
      * Zapisuje instancje w dwoch listach (zadania i przerwy osobno) */
-    public static void loadInstance() throws IOException {
+    private static void loadInstance() throws IOException {
         tasksContainer = new ArrayList<Task>();
         breaksContainer = new ArrayList<Break>();
 
@@ -67,10 +72,110 @@ public class Metasolver {
             breaksContainer.add(tmpBreak);
         }
     }
+    
+    /** Zwraca wartosc funkcji celu dla pierowotnego ulozenia */
+    private static Individual getFirstSchedule() {
+    	List<Integer> list = IntStream.range(1, tasksAmount + 1).boxed().collect(Collectors.toList());
+    	Individual firstSchedule = generateMachine(list.toArray(new Integer[list.size()]));
+    	return firstSchedule;
+    }
+    
+    /** Zapisuje najlepsze (aktualnie) rozwiazanie do pliku w folderze ROZWIAZANIA */
+    private static void saveSolution() throws FileNotFoundException {
+    	/// TYMCZASOWO theBest bedzie firstSchedule!!!
+    	theBest = getFirstSchedule();
+    	/// pozniej to usuniemy i normalnie bedziemy podstawiali jakies lepsze rozwiazanie
+    	/// ktore powstanie w trakcie dzialania programu
+    	int breaksCountM1 = 0;
+        int breaksCountM2 = 0;
+        int breaksTimeM1 = 0;
+        int breaksTimeM2 = 0;
+        int idleCountM1 = 0;
+        int idleCountM2 = 0;
+        int idleTimeM1 = 0;
+        int idleTimeM2 = 0;
+    	String plik = "ROZWIAZANIA/instancja" + instanceNumber + ".rozwiazanie";
+        BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(plik));
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os)); 
+        pw.write("**** " + Integer.toString(instanceNumber) + " ****\n");
+        
+        pw.write(Integer.toString(theBest.getFitness()) + "; " + Integer.toString(getFirstSchedule().getFitness()) + "\n");
+        pw.write("M1: ");
+        
+        int timeOnMachine = 0;
+        for (int i = 0; i < theBest.getMachine1().size(); i++) {
+            int taskId = theBest.getMachine1().get(i)[0];
+            int taskTime = theBest.getMachine1().get(i)[1];
+        	if(taskId > 0) { //OPERATION
+        		pw.write("o1_" + Integer.toString(taskId) +
+        				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(taskTime) +
+        				", " + Integer.toString(0) +
+        				"; ");
+        	} else if(taskId == 0) { //IDLE
+        		idleCountM1++;
+        		idleTimeM1 += taskTime;
+        		pw.write("idle_" + Integer.toString(idleCountM1) + "_M1" +
+        				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(taskTime) +
+        				"; ");
+        	} else { //MAINTENCE BREAK
+        		breaksCountM1++;
+        		breaksTimeM1 += taskTime;
+        		pw.write("maint_" + Integer.toString(breaksCountM1) + "_M1" +
+        				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(taskTime) +
+        				"; ");
+        	}
+        	timeOnMachine += taskTime;
+        }
+        
+        pw.write("\nM2: ");
+        
+        timeOnMachine = 0;
+        for (int i = 0; i < theBest.getMachine2().size(); i++) {
+            int taskId = theBest.getMachine2().get(i)[0];
+            int taskTime = theBest.getMachine2().get(i)[1];
+        	if(taskId > 0) { //OPERATION
+        		pw.write("o2_" + Integer.toString(taskId) +
+        				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(taskTime) +
+        				", " + Integer.toString(0) +
+        				"; ");
+        	} else if(taskId == 0) { //IDLE
+        		idleCountM2++;
+        		idleTimeM2 += taskTime;
+        		pw.write("idle_" + Integer.toString(idleCountM2) + "_M2" +
+        				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(taskTime) +
+        				"; ");
+        	} else { //MAINTENCE BREAK
+        		breaksCountM2++;
+        		breaksTimeM2 += taskTime;
+        		pw.write("maint_" + Integer.toString(breaksCountM2) + "_M2" +
+        				", " + Integer.toString(timeOnMachine) +
+        				", " + Integer.toString(taskTime) +
+        				"; ");
+        	}
+        	timeOnMachine += taskTime;
+        }
+        
+        pw.write("\n");
+        
+        pw.write(Integer.toString(breaksCountM1) + ", " + Integer.toString(breaksTimeM1) + "\n");
+        pw.write(Integer.toString(breaksCountM2) + ", " + Integer.toString(breaksTimeM2) + "\n");
+        
+        pw.write(Integer.toString(idleCountM1) + ", " + Integer.toString(idleTimeM1) + "\n");
+        pw.write(Integer.toString(idleCountM2) + ", " + Integer.toString(idleTimeM2) + "\n");
+        
+        pw.write("*** EOF ***");
+        pw.close();
+        
+        System.out.println("Zakonczono przetwarzanie instancji nr " + instanceNumber + " pomyslnie! Sprawdz plik ROZWIAZANIA/instancja" + instanceNumber + ".rozwiazanie");
+    }
 
-    /** Pobiera licznosc populacji, ktora ma wygenerowac;
-     * Miesza kolejnosc zadan w liscie i tworzy z nich populacje;
-     * Zapisuje wygenerowana populacje w liscie */
+    /** Miesza kolejnosc zadan w liscie i tworzy z nich populacje;
+     * Zapisuje wygenerowana populacje na maszynach w liscie */
     private static void randomPopulation() {
         List<Integer> list = IntStream.range(1, tasksAmount + 1).boxed().collect(Collectors.toList());
         List<Integer[]> tmpPopulation = new ArrayList<>();
@@ -82,6 +187,7 @@ public class Metasolver {
         }
 
         for (int i = 0; i < tmpPopulation.size(); i++) {
+        	System.out.println("Jedna z wielu skladowych populacji (identyfikatory zadan):");
             for (int j = 0; j < tmpPopulation.get(i).length; j++) {
                 System.out.printf(String.valueOf(tmpPopulation.get(i)[j]) + " ");
             }
@@ -93,7 +199,7 @@ public class Metasolver {
 
     /** Pobiera liste zadan z pewna kolejnoscia ich ulozenia;
      * Zwraca nam obiekt z lista zadan i konkretnymi uszeregowanami na maszynach;
-     * W zmiennej fitness trzyamy policzona funkcje celu, czyli czas po ktorym
+     * W zmiennej fitness trzymamy policzona funkcje celu, czyli czas po ktorym
      * wykonaja sie wszystkie zadania wraz z przerwami */
     private static Individual generateMachine(Integer[] tasks) { 
         List<Integer[]> machine1 = new ArrayList<Integer[]>();
@@ -110,7 +216,7 @@ public class Metasolver {
 
             /** Puki napotykamy przerwe na poczatku to ja zapisujemy na maszynie */
             while ((tmpBreak = checkBreak(1, maxTimeM1, 1)) != null) {
-            	int breakId = tmpBreak.getId();
+            	int breakId = tmpBreak.getId()*(-1);
                 int breakTime = tmpBreak.getTime();
                 machine1.add(new Integer[]{breakId, breakTime});
                 maxTimeM1 += breakTime;
@@ -134,8 +240,9 @@ public class Metasolver {
                     maxTimeM1 += timeToBreak;
                     op1Time -= timeToBreak;
 
+                    int breakId = tmpBreak.getId()*(-1);
                     int breakTime = tmpBreak.getTime();
-                    machine1.add(new Integer[]{0, breakTime});
+                    machine1.add(new Integer[]{breakId, breakTime});
                     maxTimeM1 += breakTime;
                 }
             } while (op1Time > 0);
@@ -150,7 +257,7 @@ public class Metasolver {
 
             /** Puki napotykamy przerwe na poczatku to ja zapisujemy na maszynie */
             while ((tmpBreak = checkBreak(2, maxTimeM2, 1)) != null) {
-            	int breakId = tmpBreak.getId();
+            	int breakId = tmpBreak.getId()*(-1);
                 int breakTime = tmpBreak.getTime();
                 machine2.add(new Integer[]{breakId, breakTime});
                 maxTimeM2 += breakTime;
@@ -171,24 +278,27 @@ public class Metasolver {
                     maxTimeM2 += timeToBreak;
                     op2Time -= timeToBreak;
 
+                    int breakId = tmpBreak.getId()*(-1);
                     int breakTime = tmpBreak.getTime();
-                    machine2.add(new Integer[]{0, breakTime});
+                    machine2.add(new Integer[]{breakId, breakTime});
                     maxTimeM2 += breakTime;
                 }
             } while (op2Time > 0);
         }
 
         /** Wypisywanie maszyny I w jedkostkach czasu */
+        System.out.println("Maszyna I w jednostkach czasu:");
         for (int i = 0; i < machine1.size(); i++) {
             for (int j = 0; j < machine1.get(i)[1]; j++) {
-                System.out.printf(String.valueOf(machine1.get(i)[0]));
+                System.out.printf(String.valueOf(machine1.get(i)[0]) + " ");
             }
         }
         System.out.printf("\n");
         /** Wypisywanie maszyny II w jedkostkach czasu */
+        System.out.println("Maszyna II w jednostkach czasu:");
         for (int i = 0; i < machine2.size(); i++) {
             for (int j = 0; j < machine2.get(i)[1]; j++) {
-                System.out.printf(String.valueOf(machine2.get(i)[0]));
+                System.out.printf(String.valueOf(machine2.get(i)[0]) + " ");
             }
         }
         System.out.printf("\n");
@@ -199,9 +309,11 @@ public class Metasolver {
         return individual;
     }
 
-    /** ??? */
-    public static void evolvePopulation() {
-
+    /** W petli przechodzi przez kolejne etapy metaheurystyki
+     * po spelneniu warunku stopu zwraca najlepsze uzyskane rozwiazanie */
+    private static void evolvePopulation() {
+    	//zawsze ktorys musi byc theBest na wypadek stopu
+    	//petla while(warunkek stopu)
     }
 
     /** ??? */
@@ -267,15 +379,17 @@ public class Metasolver {
     public static void main(String args[]) throws NumberFormatException, IOException {
     	loadInstance();
         randomPopulation();
+        evolvePopulation();
+        saveSolution();
 
+        /*System.out.println("Lista zadan instancji:");
         for (int i = 0; i < tasksContainer.size(); i++) {
             System.out.println(tasksContainer.get(i).getId() + ") " + tasksContainer.get(i).getOp1().getTime() + ", " + tasksContainer.get(i).getOp2().getTime());
         }
 
+        System.out.println("Lista przerw instancji:");
         for (int i = 0; i < breaksContainer.size(); i++) {
             System.out.println(breaksContainer.get(i).getMachine() + ", " + breaksContainer.get(i).getStart() + ", " + breaksContainer.get(i).getTime());
-        }
-
-        System.out.println("Zakonczono przetwarzanie instancji nr " + instanceNumber + " pomyslnie! Sprawdz plik ROZWIAZANIA/instancja" + instanceNumber + ".rozwiazanie");
+        }*/
     }
 }
