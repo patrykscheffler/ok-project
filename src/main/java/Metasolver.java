@@ -254,7 +254,9 @@ public class Metasolver {
                 machine2.add(new Integer[]{0, maxTimeM1});
                 maxTimeM2 = maxTimeM1;
             }
-
+            
+            /** Na maszynie drugiej nie mamy do przetworzenia zadania;
+             * na przyklad w wyniku trwajacej przerwy na M1 */
             if (maxTimeM1 - maxTimeM2 > 0) {
                 machine2.add(new Integer[] {0, maxTimeM1 - maxTimeM2});
                 maxTimeM2 += maxTimeM1 - maxTimeM2;

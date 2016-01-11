@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -27,7 +28,7 @@ public class Generator {
         return true;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static <E> void main(String args[]) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Podaj numer instancji problemu do wygenerowania: ");
         int instanceNumber = Integer.parseInt(br.readLine());
@@ -54,16 +55,36 @@ public class Generator {
 
         int op1Time;
         int op2Time;
-        int max_long = 0;
+        int max_longM1 = 0;
+        int max_longM2 = 0;
         for (int i = 1; i <= tasksAmount; i++) {
             op1Time = randomInRange(minTaskTime, maxTaskTime);
             op2Time = randomInRange(minTaskTime, maxTaskTime);
-            max_long += op1Time > op2Time ? op1Time : op2Time;
+            max_longM1 += op1Time;
+            max_longM2 += op2Time;
             pw.write(op1Time + "; " + op2Time + "; 1; 2;\n");
         }
         
+        int break_longM1 = 0;
+        ArrayList<Integer> breaksM1 = new ArrayList<Integer>();
+        for (int j = 1; j <= breakCountM1; j++) {
+        	Integer breakTime = randomInRange(minBreakTime, maxBreakTime);
+        	break_longM1 += breakTime;
+        	breaksM1.add(breakTime);
+        }
+        
+        int break_longM2 = 0;
+        ArrayList<Integer> breaksM2 = new ArrayList<Integer>();
+        for (int j = 1; j <= breakCountM2; j++) {
+        	Integer breakTime = randomInRange(minBreakTime, maxBreakTime);
+        	break_longM2 += breakTime;
+        	breaksM2.add(breakTime);
+        }
+        
+        int max_long = max_longM1 > max_longM2 ? max_longM1 : max_longM2;
+        int max_breaks = break_longM1 > break_longM2 ? break_longM1 : break_longM2;
         max_long +=
-        		(maxBreakCount * maxBreakTime) +
+        		max_breaks +
         		(int) Math.ceil(maxTaskTime * 0.2 * maxBreakCount) +
         		maxTaskTime; //for IDLE at M2 while procesing OP1 at M1
 
@@ -80,7 +101,11 @@ public class Generator {
         for (int i = 0; i <= 1; i++) {
             for (int j = 1; j <= visual[i][0]; j++) {
                 do {
-                    breakTime = randomInRange(minBreakTime, maxBreakTime);
+                	if(i == 0) { //M1
+                		breakTime = breaksM1.get(j-1);
+                	} else { //M2
+                		breakTime = breaksM2.get(j-1);
+                	}
                     startTime = randomInRange(0, max_long);
                 } while (!checkBreak(visual, i, startTime, breakTime));
 
@@ -94,8 +119,8 @@ public class Generator {
         }
         pw.write("*** EOF ***");
         
-        /* Wizualizacja przerw na maszynach
-        pw.println();
+        /** Wizualizacja przerw na maszynach */
+        /*pw.println();
         for (int i = 0; i <= 1; i++) {
             for(int j = 1; j <= max_long; j++) {
                 pw.write(Integer.toString(visual[i][j]));
