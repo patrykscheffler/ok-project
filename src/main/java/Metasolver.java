@@ -255,6 +255,11 @@ public class Metasolver {
                 maxTimeM2 = maxTimeM1;
             }
 
+            if (maxTimeM1 - maxTimeM2 > 0) {
+                machine2.add(new Integer[] {0, maxTimeM1 - maxTimeM2});
+                maxTimeM2 += maxTimeM1 - maxTimeM2;
+            }
+
             /** Puki napotykamy przerwe na poczatku to ja zapisujemy na maszynie */
             while ((tmpBreak = checkBreak(2, maxTimeM2, 1)) != null) {
             	int breakId = tmpBreak.getId()*(-1);
@@ -293,7 +298,7 @@ public class Metasolver {
                 System.out.printf(String.valueOf(machine1.get(i)[0]) + " ");
             }
         }
-        System.out.printf("\n");*/
+        System.out.printf("\n"); */
         /** Wypisywanie maszyny II w jedkostkach czasu */
         /*System.out.println("Maszyna II w jednostkach czasu:");
         for (int i = 0; i < machine2.size(); i++) {
@@ -310,13 +315,15 @@ public class Metasolver {
     }
 
     /** Zwraca nowa populacje o zadanym rozmiarze, wykonujac na starej uprzednio:
-     * turniej i wy³onienie dwoch najlepszych (dla danej probki) ulozen z obecnej populacji,
+     * turniej i wylonienie dwoch najlepszych (dla danej probki) ulozen z obecnej populacji,
      * krzyzowanie na dwoch najlepszych ulozeniach z turnieji
      * mutowanie nowego ulozenia po krzyzowaniu */
     public static void evolvePopulation() {
         List<Individual> newPopulation = new ArrayList<>();
 
-        for (int i = 0; i < populationAmountTuning; i++) {
+        newPopulation.add(selectTheBest());
+
+        for (int i = 1; i < populationAmountTuning; i++) {
             Individual ind1 = tournamentSelection();
             Individual ind2 = tournamentSelection();
             Integer[] newIndGene = crossover(ind1, ind2);
