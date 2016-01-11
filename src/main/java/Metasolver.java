@@ -18,6 +18,7 @@ import java.util.stream.IntStream;
 public class Metasolver {
     private static List<Task> tasksContainer;
     private static List<Break> breaksContainer;
+    private static List<Individual> population;
     private static int tasksAmount;
 
     public static void loadInstance() throws IOException {
@@ -64,24 +65,25 @@ public class Metasolver {
 
     private static void randomPopulation(int amount) {
         List<Integer> list = IntStream.range(1, tasksAmount + 1).boxed().collect(Collectors.toList());
-        List<Integer[]> population = new ArrayList<>();
+        List<Integer[]> tmpPopulation = new ArrayList<>();
+        population = new ArrayList<>();
 
         for (int i = 0; i < amount; i++) {
             Collections.shuffle(list);
-            population.add((Integer[]) list.toArray(new Integer[list.size()]));
+            tmpPopulation.add((Integer[]) list.toArray(new Integer[list.size()]));
         }
 
-        for (int i = 0; i < population.size(); i++) {
-            for (int j = 0; j < population.get(i).length; j++) {
-                System.out.printf(String.valueOf(population.get(i)[j]));
+        for (int i = 0; i < tmpPopulation.size(); i++) {
+            for (int j = 0; j < tmpPopulation.get(i).length; j++) {
+                System.out.printf(String.valueOf(tmpPopulation.get(i)[j]) + " ");
             }
             System.out.printf("\n");
-            generateMachine(population.get(i));
+            population.add(generateMachine(tmpPopulation.get(i)));
         }
         System.out.printf("\n");
     }
 
-    private static void generateMachine(Integer[] tasks) {
+    private static Individual generateMachine(Integer[] tasks) {
         List<Integer[]> machine1 = new ArrayList<>();
         List<Integer[]> machine2 = new ArrayList<>();
         int maxTimeM1 = 0, maxTimeM2 = 0;
@@ -157,6 +159,51 @@ public class Metasolver {
             }
         }
         System.out.printf("\n");
+
+        int fitness = maxTimeM1 > maxTimeM2 ? maxTimeM1 : maxTimeM2;
+        Individual individual = new Individual(tasks, machine1, machine2, fitness);
+
+        return individual;
+    }
+
+    public static void evolvePopulation() {
+
+    }
+
+    private static void tournamentSelection() {
+
+    }
+
+    private static Integer[] crossover(Individual ind1, Individual ind2) {
+        Integer[] tasks1 = ind1.getGenes();
+        Integer[] tasks2 = ind2.getGenes();
+
+        List<Integer> newTasks = new ArrayList<>();
+        int splitPlace = (int) Math.floor(tasks1.length / 2);
+
+        for (int i = 0; i < splitPlace; i++) {
+            newTasks.add(tasks1[i]);
+        }
+
+        for (int i = 0; i < tasks1.length; i++) {
+            if (!newTasks.contains(tasks2[i])) {
+                newTasks.add(tasks2[i]);
+            }
+        }
+
+        Integer[] result = (Integer[]) newTasks.toArray(new Integer[newTasks.size()]);
+        return result;
+    }
+
+    private static void mutation(Integer[] tasks) {
+        double mutationRate = 0.01;
+        for (int i = 0; i < tasks.length - 1; i++) {
+            if (Math.random() <= mutationRate) {
+                Integer tmp = tasks[i];
+                tasks[i] = tasks[i + 1];
+                tasks[i + 1] = tmp;
+            }
+        }
     }
 
     private static Break checkBreak(int machine, int start, int time) {
