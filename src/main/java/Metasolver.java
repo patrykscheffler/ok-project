@@ -429,10 +429,10 @@ public class Metasolver {
     	loadInstance();
     	firstScheduleFitness = getFirstSchedule().getFitness();
         randomPopulation();
+        long startTime = System.nanoTime();
+        long stopTime = startTime;
+        double duration = 0;
         if(stopCause == "TIME") {
-        	long startTime = System.nanoTime();
-        	long stopTime = startTime;
-        	double duration = 0;
         	while((double)(duration / 1000000000.0) <= stopArg) {
 	        	evolvePopulation();
 	        	stopTime = System.nanoTime();
@@ -448,6 +448,10 @@ public class Metasolver {
         	}
         }
         theBest = selectTheBest();
+        stopTime = System.nanoTime();
+    	duration = (stopTime - startTime);
+    	System.out.println("It took " + Integer.toString((int)(duration / 1000000000.0)) +
+    			"s to solve this problem! Optimised: " + (100.0-(theBest.getFitness() * 100.0 / firstScheduleFitness)) + "%");
         saveSolution();
 
         /*System.out.println("Lista zadan instancji:");
