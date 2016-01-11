@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /* TODO:
+ * wymyslic lepszy wzor na maksymalny czas przetwarzania
  * wymyslic jak przechowywac zadania i przerwy na maszynach
  * 'uszeregowanie pierwotne', czyli rozlozyc zadania zgodnie z przerwami i zalozeniami
  * zapis aktualnego rozwiazania do pliku w folderze ROZWIAZANIA
@@ -16,18 +17,19 @@ import java.util.stream.IntStream;
  */
 
 public class Metasolver {
+	private static int instanceNumber;
     private static List<Task> tasksContainer;
     private static List<Break> breaksContainer;
     private static List<Individual> population;
     private static int tasksAmount;
 
     public static void loadInstance() throws IOException {
-        tasksContainer = new ArrayList<>();
-        breaksContainer = new ArrayList<>();
+        tasksContainer = new ArrayList<Task>();
+        breaksContainer = new ArrayList<Break>();
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Podaj numer instancji problemu do rozwiazania: ");
-        int instanceNumber = Integer.parseInt(br.readLine());
+        instanceNumber = Integer.parseInt(br.readLine());
         String plik = "INSTANCJE/instancja" + instanceNumber + ".problem";
         BufferedInputStream is = new BufferedInputStream(new FileInputStream(plik));
         BufferedReader read = new BufferedReader(new InputStreamReader(is));
@@ -60,13 +62,12 @@ public class Metasolver {
                     Integer.parseInt(breakParts[3].replaceAll("[\\D]", "")));
             breaksContainer.add(tmpBreak);
         }
-
     }
 
     private static void randomPopulation(int amount) {
         List<Integer> list = IntStream.range(1, tasksAmount + 1).boxed().collect(Collectors.toList());
-        List<Integer[]> tmpPopulation = new ArrayList<>();
-        population = new ArrayList<>();
+        List<Integer[]> tmpPopulation = new ArrayList<Integer[]>();
+        population = new ArrayList<Individual>();
 
         for (int i = 0; i < amount; i++) {
             Collections.shuffle(list);
@@ -84,8 +85,8 @@ public class Metasolver {
     }
 
     private static Individual generateMachine(Integer[] tasks) {
-        List<Integer[]> machine1 = new ArrayList<>();
-        List<Integer[]> machine2 = new ArrayList<>();
+        List<Integer[]> machine1 = new ArrayList<Integer[]>();
+        List<Integer[]> machine2 = new ArrayList<Integer[]>();
         int maxTimeM1 = 0, maxTimeM2 = 0;
 
         for (int i = 0; i < tasksAmount; i++) {
@@ -178,7 +179,7 @@ public class Metasolver {
         Integer[] tasks1 = ind1.getGenes();
         Integer[] tasks2 = ind2.getGenes();
 
-        List<Integer> newTasks = new ArrayList<>();
+        List<Integer> newTasks = new ArrayList<Integer>();
         int splitPlace = (int) Math.floor(tasks1.length / 2);
 
         for (int i = 0; i < splitPlace; i++) {
@@ -233,6 +234,6 @@ public class Metasolver {
             System.out.println(breaksContainer.get(i).getMachine() + ", " + breaksContainer.get(i).getStart() + ", " + breaksContainer.get(i).getTime());
         }
 
-//        System.out.println("Zakonczono przetwarzanie instancji nr " + instanceNumber + " pomyslnie! Sprawdz plik ROZWIAZANIA/instancja" + instanceNumber + ".rozwiazanie");
+        System.out.println("Zakonczono przetwarzanie instancji nr " + instanceNumber + " pomyslnie! Sprawdz plik ROZWIAZANIA/instancja" + instanceNumber + ".rozwiazanie");
     }
 }

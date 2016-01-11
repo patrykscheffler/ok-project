@@ -44,7 +44,12 @@ public class Generator {
 
         int breakCountM1 = randomInRange(2, tasksAmount/2);
         int breakCountM2 = randomInRange(2, tasksAmount/2);
-        int max_long = (maxTaskTime * 2 * tasksAmount) + (int) Math.ceil(maxTaskTime * 0.2 * breakCountM1) + (int) Math.ceil(maxTaskTime * 0.2 * breakCountM2) + (breakCountM1 * maxBreakTime) + (breakCountM2 * maxBreakTime);
+        int max_long = 
+        		(maxTaskTime * 2 * tasksAmount) + 
+        		(int) Math.ceil(maxTaskTime * 0.2 * breakCountM1) + 
+        		(int) Math.ceil(maxTaskTime * 0.2 * breakCountM2) + 
+        		(breakCountM1 * maxBreakTime) + 
+        		(breakCountM2 * maxBreakTime);
 
         int[][] visual = new int[2][max_long + 1];
         for (int i = 0; i <= 1; i++) {
@@ -85,17 +90,17 @@ public class Generator {
                 }
             }
         }
-
         pw.write("*** EOF ***");
-//        Wizualizacja przerw na maszynach:
+        
+        /* Wizualizacja przerw na maszynach
         pw.println();
         for (int i = 0; i <= 1; i++) {
             for(int j = 1; j <= max_long; j++) {
                 pw.write(Integer.toString(visual[i][j]));
             }
             pw.println();
-        }
-
+        }*/
+        
         pw.close();
         System.out.println("Zakonczono generowanie instancji problemu nr " + instanceNumber + " z " + tasksAmount + " zadaniami!");
     }
