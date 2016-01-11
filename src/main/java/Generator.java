@@ -45,8 +45,24 @@ public class Generator {
         int breakCountM1 = randomInRange(2, tasksAmount/2);
         int breakCountM2 = randomInRange(2, tasksAmount/2);
         int maxBreakCount = breakCountM1 > breakCountM2 ? breakCountM1 : breakCountM2;
-        int max_long = 
-        		(maxTaskTime * tasksAmount) +
+
+        String plik = "INSTANCJE/instancja" + instanceNumber + ".problem";
+        BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(plik));
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
+        pw.write("**** " + Integer.toString(instanceNumber) + " ****\n");
+        pw.write(Integer.toString(tasksAmount) + "\n");
+
+        int op1Time;
+        int op2Time;
+        int max_long = 0;
+        for (int i = 1; i <= tasksAmount; i++) {
+            op1Time = randomInRange(minTaskTime, maxTaskTime);
+            op2Time = randomInRange(minTaskTime, maxTaskTime);
+            max_long += op1Time > op2Time ? op1Time : op2Time;
+            pw.write(op1Time + "; " + op2Time + "; 1; 2;\n");
+        }
+        
+        max_long +=
         		(maxBreakCount * maxBreakTime) +
         		(int) Math.ceil(maxTaskTime * 0.2 * maxBreakCount) +
         		maxTaskTime; //for IDLE at M2 while procesing OP1 at M1
@@ -57,20 +73,6 @@ public class Generator {
         }
         visual[0][0] = breakCountM1;
         visual[1][0] = breakCountM2;
-
-        String plik = "INSTANCJE/instancja" + instanceNumber + ".problem";
-        BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(plik));
-        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
-        pw.write("**** " + Integer.toString(instanceNumber) + " ****\n");
-        pw.write(Integer.toString(tasksAmount) + "\n");
-
-        int op1Time;
-        int op2Time;
-        for (int i = 1; i <= tasksAmount; i++) {
-            op1Time = randomInRange(minTaskTime, maxTaskTime);
-            op2Time = randomInRange(minTaskTime, maxTaskTime);
-            pw.write(op1Time + "; " + op2Time + "; 1; 2;\n");
-        }
 
         int breakTime;
         int startTime;

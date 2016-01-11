@@ -16,14 +16,19 @@ public class Metasolver {
 	/** Tuning metaheurystyki */
 	private final static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
 	private final static int populationAmountTuning = 200; //liczebnosc generowanej populacji
-	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; *100%
-    private final static int tournamentSizeTuning = 4; //rozmiar turnieju
+	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; LICZBA *100%
+    private final static int tournamentSizeTuning = 4; //liczba uszeregowan brana do turnieju
+    
+    /** Warunek stopu */
+    private final static String stopCause = "TIME"; //warunek stopu; TIME/PERCENT
+    private final static double stopArg = 120; //argument warunku stopu; SEKUNDY/PROCENT [%]
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
     private static List<Break> breaksContainer;
     private static List<Individual> population;
     private static int tasksAmount;
+    private static int firstScheduleFitness;
     private static Individual theBest;
 
     /** Pobiera numer instancji do zaladowania z folderu INSTANCJE;
@@ -92,7 +97,7 @@ public class Metasolver {
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(os)); 
         pw.write("**** " + Integer.toString(instanceNumber) + " ****\n");
         
-        pw.write(Integer.toString(theBest.getFitness()) + "; " + Integer.toString(getFirstSchedule().getFitness()) + "\n");
+        pw.write(Integer.toString(theBest.getFitness()) + "; " + Integer.toString(firstScheduleFitness) + "\n");
         pw.write("M1: ");
         
         int timeOnMachine = 0;
@@ -334,7 +339,7 @@ public class Metasolver {
 
         Individual fittest = tournament.get(0);
         for (int i = 1; i < tournament.size(); i++) {
-            if (tournament.get(i).getFitness() > fittest.getFitness()) {
+            if (tournament.get(i).getFitness() < fittest.getFitness()) {
                 fittest = tournament.get(i);
             }
         }
@@ -346,7 +351,7 @@ public class Metasolver {
     private static Individual selectTheBest() {
         Individual theBest = population.get(0);
         for (int i = 1; i < population.size(); i++) {
-            if (population.get(i).getFitness() > theBest.getFitness()) {
+            if (population.get(i).getFitness() < theBest.getFitness()) {
             	theBest = population.get(i);
             }
         }
@@ -413,10 +418,25 @@ public class Metasolver {
 
     public static void main(String args[]) throws NumberFormatException, IOException {
     	loadInstance();
+    	firstScheduleFitness = getFirstSchedule().getFitness();
         randomPopulation();
-        for(int i=0; i<25; i++) {
-        	System.out.println(Integer.toString(i));
-        	evolvePopulation();
+        if(stopCause == "TIME") {
+        	long startTime = System.nanoTime();
+        	long stopTime = startTime;
+        	double duration = 0;
+        	while((double)(duration / 1000000000.0) <= stopArg) {
+	        	evolvePopulation();
+	        	stopTime = System.nanoTime();
+	        	duration = (stopTime - startTime);
+	        	System.out.println(Integer.toString((int)(duration / 1000000000.0)) +
+	        			"s out of " + stopArg + "s");
+        	}
+        } else if(stopCause == "PERCENT") {
+        	while((100.0-(selectTheBest().getFitness() * 100.0 / firstScheduleFitness)) < stopArg) {
+        		System.out.println(Double.toString((100.0-(selectTheBest().getFitness() * 100.0 / firstScheduleFitness))) +
+        				"% out of " + Double.toString(stopArg) + "%");
+        		evolvePopulation();
+        	}
         }
         theBest = selectTheBest();
         saveSolution();
