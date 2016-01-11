@@ -18,6 +18,7 @@ public class Metasolver {
 	private final static int populationAmountTuning = 200; //liczebnosc generowanej populacji
 	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; LICZBA *100%
     private final static int tournamentSizeTuning = 4; //liczba uszeregowan brana do turnieju
+    private final static boolean keepBestIndividual = false;
     
     /** Warunek stopu */
     private final static String stopCause = "TIME"; //warunek stopu; TIME/PERCENT
@@ -323,9 +324,13 @@ public class Metasolver {
     public static void evolvePopulation() {
         List<Individual> newPopulation = new ArrayList<>();
 
-        newPopulation.add(selectTheBest());
+        int offset = 0;
+        if (keepBestIndividual) {
+            newPopulation.add(selectTheBest());
+            offset = 1;
+        }
 
-        for (int i = 1; i < populationAmountTuning; i++) {
+        for (int i = offset; i < populationAmountTuning; i++) {
             Individual ind1 = tournamentSelection();
             Individual ind2 = tournamentSelection();
             Integer[] newIndGene = crossover(ind1, ind2);
@@ -396,11 +401,19 @@ public class Metasolver {
      * przy zadanym procencie szansy zamienia sasiadujace wartosci ze soba */
     private static Integer[] mutation(Integer[] tasks) {
         double mutationRate = mutationRateTuning;
-        for (int i = 0; i < tasks.length - 1; i++) {
+        Random r = new Random();
+        int first, second;
+
+        for (int i = 0; i < tasks.length; i++) {
             if (Math.random() <= mutationRate) {
-                Integer tmp = tasks[i];
-                tasks[i] = tasks[i + 1];
-                tasks[i + 1] = tmp;
+                first = r.nextInt(tasks.length);
+                do {
+                    second = r.nextInt(tasks.length);
+                } while (second == first);
+
+                Integer tmp = tasks[first];
+                tasks[first] = tasks[second];
+                tasks[second] = tmp;
             }
         }
 
@@ -438,7 +451,7 @@ public class Metasolver {
 	        	stopTime = System.nanoTime();
 	        	duration = (stopTime - startTime);
 	        	System.out.println(Integer.toString((int)(duration / 1000000000.0)) +
-	        			"s out of " + stopArg + "s");
+	        			"s out of " + stopArg + "s " + selectTheBest().getFitness());
         	}
         } else if(stopCause == "PERCENT") {
         	while((100.0-(selectTheBest().getFitness() * 100.0 / firstScheduleFitness)) < stopArg) {
