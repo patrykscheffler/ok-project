@@ -22,7 +22,7 @@ public class Metasolver {
     
     /** Warunek stopu */
     private final static String stopCause = "TIME"; //warunek stopu; TIME/PERCENT
-    private final static double stopArg = 120; //argument warunku stopu; SEKUNDY/PROCENT [%]
+    private final static double stopArg = 60*15; //argument warunku stopu; SEKUNDY/PROCENT [%]
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
@@ -454,8 +454,8 @@ public class Metasolver {
 	        			"s out of " + stopArg + "s " + selectTheBest().getFitness());
         	}
         } else if(stopCause == "PERCENT") {
-        	while((((firstScheduleFitness - selectTheBest().getFitness()) * 100) / firstScheduleFitness) < stopArg) {
-        		System.out.println(Double.toString((((firstScheduleFitness - selectTheBest().getFitness()) * 100) / firstScheduleFitness)) +
+        	while((((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness) < stopArg) {
+        		System.out.println(Double.toString((((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness)) +
         				"% out of " + Double.toString(stopArg) + "%");
         		evolvePopulation();
         	}
@@ -464,7 +464,7 @@ public class Metasolver {
         stopTime = System.nanoTime();
     	duration = (stopTime - startTime);
     	System.out.println("It took " + Integer.toString((int)(duration / 1000000000.0)) +
-    			"s to solve this problem! Optimised: " + (((firstScheduleFitness - selectTheBest().getFitness()) * 100) / firstScheduleFitness) + "%");
+    			"s to solve this problem! Optimised: " + (((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness) + "%");
         saveSolution();
 
         /*System.out.println("Lista zadan instancji:");
