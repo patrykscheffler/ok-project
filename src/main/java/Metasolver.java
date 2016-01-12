@@ -21,8 +21,8 @@ public class Metasolver {
     private final static boolean keepBestIndividual = false;
     
     /** Warunek stopu */
-    private final static String stopCause = "TIME"; //warunek stopu; TIME/PERCENT
-    private final static double stopArg = 60*15; //argument warunku stopu; SEKUNDY/PROCENT [%]
+    private final static String stopCause = "DIFFERENCE"; //warunek stopu; TIME / PERCENT / DIFFERENCE
+    private final static double stopArg = 0.1; //argument warunku stopu; SEKUNDY / PROCENT[%] / PROCENT[%]
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
@@ -444,7 +444,8 @@ public class Metasolver {
         randomPopulation();
         long startTime = System.nanoTime();
         long stopTime = startTime;
-        double duration = 0;
+        double duration = 0.0;
+        double percent = 100.0;
         if(stopCause == "TIME") {
         	while((double)(duration / 1000000000.0) <= stopArg) {
 	        	evolvePopulation();
@@ -454,17 +455,30 @@ public class Metasolver {
 	        			"s out of " + stopArg + "s");
         	}
         } else if(stopCause == "PERCENT") {
-        	while((((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness) < stopArg) {
-        		System.out.println(Double.toString((((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness)) +
-        				"% out of " + Double.toString(stopArg) + "%");
+        	while(percent < stopArg) {
         		evolvePopulation();
+        		percent = (((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness);
+        		System.out.println(Double.toString(percent) +
+        				"% out of " + Double.toString(stopArg) + "%");
+        	}
+        } else if(stopCause == "DIFFERENCE") {
+        	int lastTheBest;
+        	lastTheBest = firstScheduleFitness;
+        	double diff = 100.0;
+        	while(diff >= stopArg) {
+        		evolvePopulation();
+        		diff = (((lastTheBest - (lastTheBest = selectTheBest().getFitness())) * 100.0) / lastTheBest);
+        		if(diff < 0) { diff = 100.0; } else {
+        			System.out.println(Double.toString(diff));
+        		}
         	}
         }
         theBest = selectTheBest();
         stopTime = System.nanoTime();
     	duration = (stopTime - startTime);
+    	percent = (((firstScheduleFitness - theBest.getFitness()) * 100.0) / firstScheduleFitness);
     	System.out.println("It took " + Integer.toString((int)(duration / 1000000000.0)) +
-    			"s to solve this problem! Optimised: " + (((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness) + "%");
+    			"s to solve this problem! Optimised: " + Double.toString(percent) + "%");
         saveSolution();
 
         /*System.out.println("Lista zadan instancji:");
