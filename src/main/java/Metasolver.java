@@ -451,7 +451,7 @@ public class Metasolver {
 	        	stopTime = System.nanoTime();
 	        	duration = (stopTime - startTime);
 	        	System.out.println(Integer.toString((int)(duration / 1000000000.0)) +
-	        			"s out of " + stopArg + "s " + selectTheBest().getFitness());
+	        			"s out of " + stopArg + "s");
         	}
         } else if(stopCause == "PERCENT") {
         	while((((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness) < stopArg) {
