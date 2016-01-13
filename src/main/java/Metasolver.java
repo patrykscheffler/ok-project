@@ -16,7 +16,7 @@ public class Metasolver {
 	/** Tuning metaheurystyki */
 	private final static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
 	private final static int populationAmountTuning = 200; //liczebnosc generowanej populacji
-	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; LICZBA *100%
+	private final static double mutationRateTuning = 0.1; //procent szansy na mutacje; LICZBA *100%
     private final static int tournamentSizeTuning = 4; //liczba uszeregowan brana do turnieju
     private final static boolean keepBestIndividual = false;
     
@@ -36,8 +36,8 @@ public class Metasolver {
      * Odczytuje plik konkretnej instancji;
      * Zapisuje instancje w dwoch listach (zadania i przerwy osobno) */
     private static void loadInstance() throws IOException {
-        tasksContainer = new ArrayList<Task>();
-        breaksContainer = new ArrayList<Break>();
+        tasksContainer = new ArrayList<>();
+        breaksContainer = new ArrayList<>();
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Podaj numer instancji problemu do rozwiazania: ");
@@ -180,7 +180,7 @@ public class Metasolver {
     private static void randomPopulation() {
         List<Integer> list = IntStream.range(1, tasksAmount + 1).boxed().collect(Collectors.toList());
         List<Integer[]> tmpPopulation = new ArrayList<>();
-        population = new ArrayList<Individual>();
+        population = new ArrayList<>();
 
         for (int i = 0; i < populationAmountTuning; i++) {
             Collections.shuffle(list);
@@ -203,8 +203,8 @@ public class Metasolver {
      * W zmiennej fitness trzymamy policzona funkcje celu, czyli czas po ktorym
      * wykonaja sie wszystkie zadania wraz z przerwami */
     private static Individual generateMachine(Integer[] tasks) { 
-        List<Integer[]> machine1 = new ArrayList<Integer[]>();
-        List<Integer[]> machine2 = new ArrayList<Integer[]>();
+        List<Integer[]> machine1 = new ArrayList<>();
+        List<Integer[]> machine2 = new ArrayList<>();
         int maxTimeM1 = 0, maxTimeM2 = 0;
 
         /** Przetwarzamy kazde zadanie, najpierw na I maszynie a pozniej na II */
@@ -330,9 +330,16 @@ public class Metasolver {
             offset = 1;
         }
 
+        int selectedAmount = populationAmountTuning / tournamentSizeTuning;
+        List<Individual> selected = new ArrayList<>();
+        for (int i = 0; i < selectedAmount; i++) {
+            selected.add(tournamentSelection());
+        }
+
+        Random r = new Random();
         for (int i = offset; i < populationAmountTuning; i++) {
-            Individual ind1 = tournamentSelection();
-            Individual ind2 = tournamentSelection();
+            Individual ind1 = selected.get(r.nextInt(selectedAmount));
+            Individual ind2 = selected.get(r.nextInt(selectedAmount));
             Integer[] newIndGene = crossover(ind1, ind2);
             newIndGene = mutation(newIndGene);
             Individual newInd = generateMachine(newIndGene);
@@ -380,7 +387,7 @@ public class Metasolver {
         Integer[] tasks1 = ind1.getGenes();
         Integer[] tasks2 = ind2.getGenes();
 
-        List<Integer> newTasks = new ArrayList<Integer>();
+        List<Integer> newTasks = new ArrayList<>();
         int splitPlace = (int) Math.floor(tasks1.length / splitPlaceTuning);
 
         for (int i = 0; i < splitPlace; i++) {
