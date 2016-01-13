@@ -13,16 +13,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Metasolver {
-	/** Tuning metaheurystyki */
-	private final static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
-	private final static int populationAmountTuning = 200; //liczebnosc generowanej populacji
-	private final static double mutationRateTuning = 0.01; //procent szansy na mutacje; LICZBA *100%
-    private final static int tournamentSizeTuning = 4; //liczba uszeregowan brana do turnieju
-    private final static boolean keepBestIndividual = false;
+	/** Tuning metaheurystyki; ADD FINAL! */
+	private static int splitPlaceTuning = 2; //miejsce podzialu przy krzyzowaniu
+	private static int populationAmountTuning = 200; //liczebnosc generowanej populacji
+	private static double mutationRateTuning = 0.05; //procent szansy na mutacje; LICZBA *100%
+    private static int tournamentSizeTuning = 4; //liczba uszeregowan brana do turnieju
+    private static boolean keepBestIndividual = false;
     
     /** Warunek stopu */
-    private final static String stopCause = "DIFFERENCE"; //warunek stopu; TIME / PERCENT / DIFFERENCE
-    private final static double stopArg = 0.1; //argument warunku stopu; SEKUNDY / PROCENT[%] / PROCENT[%]
+    private final static String stopCause = "TIME"; //warunek stopu; TIME / PERCENT / DIFFERENCE
+    private final static double stopArg = 60; //argument warunku stopu; SEKUNDY / PROCENT[%] / PROCENT[%]
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
@@ -35,13 +35,10 @@ public class Metasolver {
     /** Pobiera numer instancji do zaladowania z folderu INSTANCJE;
      * Odczytuje plik konkretnej instancji;
      * Zapisuje instancje w dwoch listach (zadania i przerwy osobno) */
-    private static void loadInstance() throws IOException {
+    private static void loadInstance(int instanceNumber) throws IOException {
         tasksContainer = new ArrayList<Task>();
         breaksContainer = new ArrayList<Break>();
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Podaj numer instancji problemu do rozwiazania: ");
-        instanceNumber = Integer.parseInt(br.readLine());
         String plik = "INSTANCJE/instancja" + instanceNumber + ".problem";
         BufferedInputStream is = new BufferedInputStream(new FileInputStream(plik));
         BufferedReader read = new BufferedReader(new InputStreamReader(is));
@@ -439,56 +436,69 @@ public class Metasolver {
     }
 
     public static void main(String args[]) throws NumberFormatException, IOException {
-    	loadInstance();
-    	firstScheduleFitness = getFirstSchedule().getFitness();
-        randomPopulation();
-        long startTime = System.nanoTime();
-        long stopTime = startTime;
-        double duration = 0.0;
-        double percent = 100.0;
-        if(stopCause == "TIME") {
-        	while((double)(duration / 1000000000.0) <= stopArg) {
-	        	evolvePopulation();
-	        	stopTime = System.nanoTime();
-	        	duration = (stopTime - startTime);
-	        	System.out.println(Integer.toString((int)(duration / 1000000000.0)) +
-	        			"s out of " + stopArg + "s");
-        	}
-        } else if(stopCause == "PERCENT") {
-        	while(percent < stopArg) {
-        		evolvePopulation();
-        		percent = (((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness);
-        		System.out.println(Double.toString(percent) +
-        				"% out of " + Double.toString(stopArg) + "%");
-        	}
-        } else if(stopCause == "DIFFERENCE") {
-        	int lastTheBest;
-        	lastTheBest = firstScheduleFitness;
-        	double diff = 100.0;
-        	while(diff >= stopArg) {
-        		evolvePopulation();
-        		diff = (((lastTheBest - (lastTheBest = selectTheBest().getFitness())) * 100.0) / lastTheBest);
-        		if(diff < 0) { diff = 100.0; } else {
-        			System.out.println(Double.toString(diff));
-        		}
-        	}
+    	//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        //System.out.print("Podaj numer instancji problemu do rozwiazania: ");
+        //instanceNumber = Integer.parseInt(br.readLine());
+    	
+    	// remove \/
+    	String plik = "ROZWIAZANIA/result.rozwiazanie";
+        BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(plik));
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os)); 
+    	//
+        for(int j=10; j<100; j+=10) { //remove; NOW CHECKING POPULATION SIZE
+        	populationAmountTuning = j;
+	        double srednia = 0.0; //remove
+		    for(int i=0; i<10; i++) { //remove
+		    	loadInstance(i); //instanceNumber
+		    	firstScheduleFitness = getFirstSchedule().getFitness();
+		        randomPopulation();
+		        long startTime = System.nanoTime();
+		        long stopTime = startTime;
+		        double duration = 0.0;
+		        double percent = 100.0;
+		        if(stopCause == "TIME") {
+		        	while((double)(duration / 1000000000.0) <= stopArg) {
+			        	evolvePopulation();
+			        	stopTime = System.nanoTime();
+			        	duration = (stopTime - startTime);
+			        	System.out.println(Integer.toString((int)(duration / 1000000000.0)) +
+			        			"s out of " + stopArg + "s at instance no " + i + "with parameter " + j); //instanceNumber ; remove
+		        	}
+		        } else if(stopCause == "PERCENT") {
+		        	while(percent < stopArg) {
+		        		evolvePopulation();
+		        		percent = (((firstScheduleFitness - selectTheBest().getFitness()) * 100.0) / firstScheduleFitness);
+		        		System.out.println(Double.toString(percent) +
+		        				"% out of " + Double.toString(stopArg) + "%");
+		        	}
+		        } else if(stopCause == "DIFFERENCE") {
+		        	int lastTheBest;
+		        	lastTheBest = firstScheduleFitness;
+		        	double diff = 100.0;
+		        	while(diff >= stopArg) {
+		        		evolvePopulation();
+		        		diff = (((lastTheBest - (lastTheBest = selectTheBest().getFitness())) * 100.0) / lastTheBest);
+		        		if(diff < 0) { diff = 100.0; } else {
+		        			System.out.println(Double.toString(diff));
+		        		}
+		        	}
+		        }
+		        theBest = selectTheBest();
+		        stopTime = System.nanoTime();
+		    	duration = (stopTime - startTime);
+		    	percent = (((firstScheduleFitness - theBest.getFitness()) * 100.0) / firstScheduleFitness);
+		    	System.out.println("It took " + Integer.toString((int)(duration / 1000000000.0)) +
+		    			"s to solve this problem! Optimised: " + Double.toString(percent) + "%");
+		        //saveSolution();
+		    	srednia += theBest.getFitness(); //remove
+		    	
+	        } //remove
+		    srednia /= 10.0; //remove
+		    pw.write(Double.toString(srednia));
+		    pw.write("\n");
         }
-        theBest = selectTheBest();
-        stopTime = System.nanoTime();
-    	duration = (stopTime - startTime);
-    	percent = (((firstScheduleFitness - theBest.getFitness()) * 100.0) / firstScheduleFitness);
-    	System.out.println("It took " + Integer.toString((int)(duration / 1000000000.0)) +
-    			"s to solve this problem! Optimised: " + Double.toString(percent) + "%");
-        saveSolution();
-
-        /*System.out.println("Lista zadan instancji:");
-        for (int i = 0; i < tasksContainer.size(); i++) {
-            System.out.println(tasksContainer.get(i).getId() + ") " + tasksContainer.get(i).getOp1().getTime() + ", " + tasksContainer.get(i).getOp2().getTime());
-        }
-
-        System.out.println("Lista przerw instancji:");
-        for (int i = 0; i < breaksContainer.size(); i++) {
-            System.out.println(breaksContainer.get(i).getMachine() + ", " + breaksContainer.get(i).getStart() + ", " + breaksContainer.get(i).getTime());
-        }*/
+	    // remove \/
+	    pw.close();
+	    //
     }
 }
