@@ -327,9 +327,16 @@ public class Metasolver {
             offset = 1;
         }
 
+        int selectedAmount = populationAmountTuning / tournamentSizeTuning;
+        List<Individual> selected = new ArrayList<>();
+        for (int i = 0; i < selectedAmount; i++) {
+            selected.add(tournamentSelection());
+        }
+
+        Random r = new Random();
         for (int i = offset; i < populationAmountTuning; i++) {
-            Individual ind1 = tournamentSelection();
-            Individual ind2 = tournamentSelection();
+            Individual ind1 = selected.get(r.nextInt(selectedAmount));
+            Individual ind2 = selected.get(r.nextInt(selectedAmount));
             Integer[] newIndGene = crossover(ind1, ind2);
             newIndGene = mutation(newIndGene);
             Individual newInd = generateMachine(newIndGene);
