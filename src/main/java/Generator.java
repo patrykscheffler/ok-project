@@ -30,11 +30,11 @@ public class Generator {
 
     public static <E> void main(String args[]) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Ile instancji chcesz wygenerwac: ");
+        System.out.print("Podaj liczbe instancji do wygenerowania: ");
         int wieViele = Integer.parseInt(br.readLine());
         System.out.print("Podaj numer pierwszej instancji: ");
         int instanceNumber = Integer.parseInt(br.readLine());
-        System.out.print("Podaj ilosc zadan do wygenerowania w tej instancji: ");
+        System.out.print("Podaj liczbe zadan do wygenerowania w tej instancji: ");
         int tasksAmount = Integer.parseInt(br.readLine());
         System.out.print("Podaj minimalny czas wykonywania pojedynczej operacji: ");
         int minTaskTime = Integer.parseInt(br.readLine());
