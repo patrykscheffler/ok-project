@@ -14,15 +14,15 @@ import java.util.stream.IntStream;
 
 public class Metasolver {
 	/** Tuning metaheurystyki */
-	private final static int splitPlaceTuning = 50; //miejsce podzialu przy krzyzowaniu
+	private final static int splitPlaceTuning = 50; //miejsce podzialu przy krzyzowaniu [%]
 	private final static int populationAmountTuning = 200; //liczebnosc generowanej populacji
-	private final static double mutationRateTuning = 0.05; //procent szansy na mutacje; LICZBA *100%
-    private final static int tournamentSizeTuning = 4; //liczba uszeregowan brana do turnieju
-    private final static boolean keepBestIndividual = false;
+	private final static double mutationRateTuning = 5; //procent szansy na mutacje [%]
+    private final static int tournamentSizeTuning = 20; //liczba uszeregowan brana do turnieju
+    private final static boolean keepBestIndividual = true;
     
     /** Warunek stopu */
-    private final static String stopCause = "TIME"; //warunek stopu; TIME / PERCENT / DIFFERENCE / ITERATIONS
-    private final static double stopArg = 60; //argument warunku stopu; SEKUNDY / PROCENT[%] / PROCENT[%] / LICZBA ITERACJI
+    private final static String stopCause = "DIFFERENCE"; //warunek stopu; TIME / PERCENT / DIFFERENCE / ITERATIONS
+    private final static double stopArg = 0.001; //argument warunku stopu; SEKUNDY / PROCENT[%] / PROCENT[%] / LICZBA ITERACJI
 	
 	private static int instanceNumber;
     private static List<Task> tasksContainer;
@@ -404,7 +404,7 @@ public class Metasolver {
     /** Pobiera liste zadan;
      * przy zadanym procencie szansy zamienia sasiadujace wartosci ze soba */
     private static Integer[] mutation(Integer[] tasks) {
-        double mutationRate = mutationRateTuning;
+        double mutationRate = mutationRateTuning/100.0;
         Random r = new Random();
         int first, second;
 
@@ -479,7 +479,7 @@ public class Metasolver {
 		    	while(diff >= stopArg) {
 		    		evolvePopulation();
 		    		diff = (((lastTheBest - (lastTheBest = selectTheBest().getFitness())) * 100.0) / lastTheBest);
-		    		if(diff < 0) { diff = 100.0; } else {
+		    		if(diff < 0.0) { diff = 100.0; } else {
 		    			System.out.println(Double.toString(diff));
 		    		}
 		    	}
